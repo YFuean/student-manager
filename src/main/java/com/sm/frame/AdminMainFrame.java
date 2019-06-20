@@ -1,9 +1,9 @@
 package com.sm.frame;
 
+import com.eltima.components.ui.DatePicker;
 import com.sm.entity.*;
 import com.sm.factory.DAOFactory;
 import com.sm.factory.ServiceFactory;
-import com.sm.service.CClassService;
 import com.sm.service.DepartmentService;
 import com.sm.ui.ImgPanel;
 import com.sm.utils.AliOSSUtil;
@@ -11,6 +11,7 @@ import net.coobird.thumbnailator.Thumbnails;
 import sun.swing.table.DefaultTableCellHeaderRenderer;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
@@ -23,6 +24,7 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 public class AdminMainFrame extends JFrame{
@@ -46,7 +48,6 @@ public class AdminMainFrame extends JFrame{
     private JLabel adminNameLabel;
     private JLabel timeLabel;
     private JLabel logoLabel;
-    private JLabel tLabel;
     private JPanel cTopPanel;
     private JTextField classNameField;
     private JButton searchBtn;
@@ -56,7 +57,6 @@ public class AdminMainFrame extends JFrame{
     private JSplitPane splitPanel;
     private JScrollPane crightScrollP;
     private JScrollPane cleftScrollP;
-    //private JPanel classContPanel;
     private Admin admin;
     private JButton deleteButton;
     private DepartmentService departmentService;
@@ -80,7 +80,6 @@ public class AdminMainFrame extends JFrame{
     private JComboBox<CClass> comboBox2;
     private JTextField searchField;
     private JButton addStudentBtn;
-    private JButton addManyStuBtn;
     private JPanel tablePanel;
     private JLabel stuAvatarLabel;
     private JTextField stuAddressField;
@@ -94,17 +93,53 @@ public class AdminMainFrame extends JFrame{
     private JLabel stuBirthdayLabel;
     private JButton 初始化数据Button;
     private JScrollPane deparScrollPanel;
+    private JButton rewardBtn;
+    private JButton punsihBtn;
+    private JPanel rpcenterPanel;
+    private JPanel rewardPanel;
+    private JPanel punishPanel;
+    private JPanel addRewardPanel;
+    private JPanel rewardListPanel;
+    private JTextField ReawrdField;
+    private JButton searchRewBtn;
+    private JButton addRewardBtn;
+    private JTextField PunishField;
+    private JButton searchPunBtn;
+    private JButton addPunishBtn;
+    private JPanel punishListPanel;
+    private JPanel addPunishPanel;
+    private JComboBox<Department> addPunDepComboBox;
+    private JComboBox<CClass> addPunClaComboBox;
+    private JComboBox<StudentVO> addPunNamComboBox;
+    private JLabel addPunIdLabel;
+    private JPanel addPunDatePanel;
+    private JTextField addPunField;
+    private JComboBox<Department> addRewDepComboBox;
+    private JComboBox<CClass> addRewClaComboBox;
+    private JComboBox<StudentVO> addRewNamComboBox;
+    private JTextField addRewField;
+    private JLabel addRewIdLabel;
+    private JPanel addRewDatePanel;
+    private JScrollPane rewSP;
+    private JPanel minRewardPanel;
     private int row,index;
     private CClass cClass;
+    private JPanel rewPanel;
+    private JTextArea rewArea;
+    private Font font;
+    private JButton deRewButton,upRewOKButton;
+    private JLabel idLabel;
 
     public AdminMainFrame(Admin admin) {
+        font = new Font("微软雅黑",Font.PLAIN,22);
         departmentService = ServiceFactory.getDepartmentServiceInstance();
         this.admin = admin;
         adminNameLabel.setText("管理员：" + admin.getAdminName());
+        adminNameLabel.setFont(font);
         Date date = new Date();
         SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         timeLabel.setText(f.format(date));
-
+        timeLabel.setFont(font);
         setTitle("管理员主界面");
         setContentPane(rootPanel);
         setExtendedState(JFrame.MAXIMIZED_BOTH);
@@ -112,12 +147,20 @@ public class AdminMainFrame extends JFrame{
         rootPanel.setFileName("FreshB2.jpg");
         rootPanel.repaint();
         setVisible(true);
-
         //调用显示所有院系方法
         showDepartments();
-
         //获取centerPanel,获取的是LayoutManager,向下转型CardLayout
         CardLayout cardLayout = (CardLayout) centerPanel.getLayout();
+        CardLayout rpCardLayout = (CardLayout) rpcenterPanel.getLayout();
+
+        DatePicker datepick1 = getDatePicker();
+        addRewDatePanel.add(datepick1);
+        addRewDatePanel.revalidate();
+
+        DatePicker datepick2 = getDatePicker();
+        addPunDatePanel.add(datepick2);
+        addPunDatePanel.revalidate();
+
         院系管理Button.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -141,6 +184,102 @@ public class AdminMainFrame extends JFrame{
                 } else {
                     leftPanel.setVisible(true);
                 }
+            }
+        });
+        学生管理Button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(centerPanel,"Card3");
+                infoPanel.setFileName("wordbg4.png");
+                infoPanel.repaint();
+
+                List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().selectAll();
+                showStudentTable(studentList);
+
+                Department tip1 = new Department();
+                tip1.setDepartmentName("请选择院系");
+                comboBox1.addItem(tip1);
+                CClass tip2 = new CClass();
+                tip2.setClassName("请选择班级");
+                comboBox2.addItem(tip2);
+
+                List<Department> departmentList = ServiceFactory.getDepartmentServiceInstance().selectAll();
+                for (Department department:departmentList) {
+                    comboBox1.addItem(department);
+                }
+
+                List<CClass> classList = ServiceFactory.getCClassServiceInstance().selectAllClass();
+                for (CClass cClass:classList) {
+                    comboBox2.addItem(cClass);
+                }
+
+                comboBox1.addItemListener(new ItemListener() {
+                    @Override
+                    public void itemStateChanged(ItemEvent e) {
+                        if (e.getStateChange() == ItemEvent.SELECTED){
+                            int index = comboBox1.getSelectedIndex();
+                            //排除第一项提示信息
+                            if (index != 0 ){
+                                departmentId = comboBox1.getItemAt(index).getId();
+                                //获取院系的学生，显示在表格中
+                                List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().getStuByDepartmentId(departmentId);
+                                showStudentTable(studentList);
+                                //二级联动
+                                List<CClass> cClassList = ServiceFactory.getCClassServiceInstance().selectByDepartmentId(departmentId);
+                                //
+                                comboBox2.removeAllItems();
+                                CClass tip = new CClass();
+                                tip.setClassName("请选择班级");
+                                comboBox2.addItem(tip);
+                                for (CClass cClass:cClassList) {
+                                    comboBox2.addItem(cClass);
+                                }
+                            }
+                        }
+                    }
+                });
+                comboBox2.addItemListener(new ItemListener() {
+                    @Override
+                    public void itemStateChanged(ItemEvent e) {
+                        if (e.getStateChange() == ItemEvent.SELECTED){
+                            int index = comboBox2.getSelectedIndex();
+                            if (index != 0){
+                                int classId = comboBox2.getItemAt(index).getId();
+                                List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().getStuByClassId(classId);
+                                showStudentTable(studentList);
+                            }
+                        }
+                    }
+                });
+            }
+        });
+        奖惩管理Button.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(centerPanel,"Card4");
+                rpCardLayout.show(rpcenterPanel,"reward");
+
+                List<RewardVO> rewardVOList = ServiceFactory.getStudentServiceInstance().selectAllReward();
+                showRewardTable(rewardVOList);
+                showAddRewCombox();
+            }
+        });
+        rewardBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                rpCardLayout.show(rpcenterPanel,"reward");
+                List<RewardVO> rewardVOList = ServiceFactory.getStudentServiceInstance().selectAllReward();
+                showRewardTable(rewardVOList);
+                showAddRewCombox();
+            }
+        });
+        punsihBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                rpCardLayout.show(rpcenterPanel,"punish");
+                List<PunishVO> punishVOList = ServiceFactory.getStudentServiceInstance().selectAllPunish();
+                showPunishTable(punishVOList);
+                showAddPunCombox();
             }
         });
         depNameField.addActionListener(new ActionListener() {
@@ -202,74 +341,6 @@ public class AdminMainFrame extends JFrame{
                 } else {
                     JOptionPane.showMessageDialog(rootPanel, "新增院系失败");
                 }
-            }
-        });
-        学生管理Button.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cardLayout.show(centerPanel,"Card3");
-                infoPanel.setFileName("wordbg4.png");
-                infoPanel.repaint();
-
-                List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().selectAll();
-                showStudentTable(studentList);
-
-                Department tip1 = new Department();
-                tip1.setDepartmentName("请选择院系");
-                comboBox1.addItem(tip1);
-                CClass tip2 = new CClass();
-                tip2.setClassName("请选择班级");
-                comboBox2.addItem(tip2);
-
-                List<Department> departmentList = ServiceFactory.getDepartmentServiceInstance().selectAll();
-                for (Department department:departmentList) {
-                    comboBox1.addItem(department);
-                }
-
-                List<CClass> classList = ServiceFactory.getCClassServiceInstance().selectAllClass();
-                for (CClass cClass:classList) {
-                    comboBox2.addItem(cClass);
-                }
-
-                comboBox1.addItemListener(new ItemListener() {
-                    @Override
-                    public void itemStateChanged(ItemEvent e) {
-                        if (e.getStateChange() == ItemEvent.SELECTED){
-                            int index = comboBox1.getSelectedIndex();
-                            //排除第一项提示信息
-                            if (index != 0 ){
-                                departmentId = comboBox1.getItemAt(index).getId();
-                                //获取院系的学生，显示在表格中
-                                List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().getStuByDepartmentId(departmentId);
-                                showStudentTable(studentList);
-                                //二级联动
-                                List<CClass> cClassList = ServiceFactory.getCClassServiceInstance().selectByDepartmentId(departmentId);
-                                //
-                                comboBox2.removeAllItems();
-                                CClass tip = new CClass();
-                                tip.setClassName("请选择班级");
-                                comboBox2.addItem(tip);
-                                for (CClass cClass:cClassList) {
-                                    comboBox2.addItem(cClass);
-                                }
-                            }
-                        }
-                    }
-                });
-
-                comboBox2.addItemListener(new ItemListener() {
-                    @Override
-                    public void itemStateChanged(ItemEvent e) {
-                        if (e.getStateChange() == ItemEvent.SELECTED){
-                            int index = comboBox2.getSelectedIndex();
-                            if (index != 0){
-                                int classId = comboBox2.getItemAt(index).getId();
-                                List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().getStuByClassId(classId);
-                                showStudentTable(studentList);
-                            }
-                        }
-                    }
-                });
             }
         });
         decomboBox.addActionListener(new ActionListener() {
@@ -342,6 +413,241 @@ public class AdminMainFrame extends JFrame{
                 AdminMainFrame.this.setEnabled(true);
             }
         });
+        searchRewBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String keywords = ReawrdField.getText().trim();
+                List<RewardVO> rewardVOList = ServiceFactory.getStudentServiceInstance().selectRewByKeywords(keywords);
+                if (rewardVOList !=null){
+                    showRewardTable(rewardVOList);
+                }
+            }
+        });
+        searchPunBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                String keywords = PunishField.getText().trim();
+                List<PunishVO> punishVOList = ServiceFactory.getStudentServiceInstance().selectPunByKeywords(keywords);
+                if (punishVOList !=null){
+                    showPunishTable(punishVOList);
+                }
+            }
+        });
+        addRewardBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                RewardVO rewardVO = new RewardVO();
+                rewardVO.setStudentId(addRewIdLabel.getText());
+                rewardVO.setReward(addRewField.getText());
+                rewardVO.setRewardDate((Date) datepick1.getValue());
+                ServiceFactory.getStudentServiceInstance().inRew(rewardVO);
+                rewardListPanel.revalidate();
+
+                //初始化
+                addRewDepComboBox.setSelectedIndex(0);
+                addRewClaComboBox.removeAllItems();
+                CClass tip2 = new CClass();
+                tip2.setClassName("请选择班级");
+                addRewClaComboBox.addItem(tip2);
+                List<CClass> cClassList = ServiceFactory.getCClassServiceInstance().selectAllClass();
+                for (CClass cClass:cClassList) {
+                    addRewClaComboBox.addItem(cClass);
+                }
+
+                addRewNamComboBox.removeAllItems();
+                StudentVO tip3 = new StudentVO();
+                tip3.setStudentName("请选择学生");
+                addRewNamComboBox.addItem(tip3);
+                List<StudentVO> studentVOList = ServiceFactory.getStudentServiceInstance().selectAll();
+                for (StudentVO student:studentVOList) {
+                    addRewNamComboBox.addItem(student);
+                }
+                addRewIdLabel.setText("未选择");
+                addRewField.setText("");
+            }
+        });
+        addPunishBtn.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                PunishVO punishVO = new PunishVO();
+                punishVO.setStudentId(addPunIdLabel.getText());
+                punishVO.setPunish(addPunField.getText());
+                punishVO.setPunishDate((Date) datepick2.getValue());
+                ServiceFactory.getStudentServiceInstance().inPun(punishVO);
+                punishListPanel.revalidate();//刷新
+                //初始化
+                addPunDepComboBox.setSelectedIndex(0);
+                addPunClaComboBox.removeAllItems();
+                CClass tip2 = new CClass();
+                tip2.setClassName("请选择班级");
+                addPunClaComboBox.addItem(tip2);
+                List<CClass> cClassList = ServiceFactory.getCClassServiceInstance().selectAllClass();
+                for (CClass cClass:cClassList) {
+                    addPunClaComboBox.addItem(cClass);
+                }
+                addPunNamComboBox.removeAllItems();
+                StudentVO tip3 = new StudentVO();
+                tip3.setStudentName("请选择学生");
+                addPunNamComboBox.addItem(tip3);
+                List<StudentVO> studentVOList = ServiceFactory.getStudentServiceInstance().selectAll();
+                for (StudentVO student:studentVOList) {
+                    addPunNamComboBox.addItem(student);
+                }
+                addPunIdLabel.setText("未选择");
+                addPunField.setText("");
+            }
+        });
+    }
+    private void showPunishTable(List<PunishVO> punishVOList){
+        punishListPanel.removeAll();
+        JTable table = new JTable();
+        DefaultTableModel model = new DefaultTableModel();
+        table.setModel(model);
+        model.setColumnIdentifiers(new String[]{"学号","院系","班级","姓名","处分","日期","id"});
+        String[] ob = {"学号","院系","班级","姓名","处分","日期","id"};
+        model.addRow(ob);
+        for (PunishVO punishVO:punishVOList) {
+            Object[] object = new Object[]{punishVO.getStudentId(),punishVO.getDepartmentName(),punishVO.getClassName(),punishVO.getStudentName(),
+                    punishVO.getPunish(),punishVO.getPunishDate(),punishVO.getId()};
+            model.addRow(object);
+        }
+        //将最后一列隐藏id
+        TableColumn tc = table.getColumnModel().getColumn(6);
+        tc.setMinWidth(0);
+        tc.setMaxWidth(0);
+
+        table.setRowHeight(35);
+        table.setBackground(Color.WHITE);
+        DefaultTableCellRenderer r = new DefaultTableCellRenderer();
+        r.setHorizontalAlignment(JLabel.CENTER);
+        table.setDefaultRenderer(Object.class,r);
+
+        JScrollPane scrollPane = new JScrollPane(table,ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        punishListPanel.add(scrollPane);
+        punishListPanel.revalidate();//刷新
+
+        JPopupMenu jPopupMenu = new JPopupMenu();
+        JMenuItem item = new JMenuItem("删除");
+        jPopupMenu.add(item);
+        table.add(jPopupMenu);
+        punishListPanel.add(table);
+        table.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                row = table.getSelectedRow();
+                if (e.getButton() == 3){
+                    jPopupMenu.show(table,e.getX(),e.getY());
+                }
+            }
+        });
+        item.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int id = (int) table.getValueAt(row,6);
+                int choice = JOptionPane.showConfirmDialog(punishListPanel,"确定要删除吗？");
+                if (choice == 0){
+                    if(row != -1){
+                        model.removeRow(row);
+                    }
+                    ServiceFactory.getStudentServiceInstance().delPunById(id);
+                }
+            }
+        });
+    }
+    private void showRewardTable(List<RewardVO> rewardVOList) {
+        rewardListPanel.removeAll();
+        GridLayout gridLayout = new GridLayout(0, 3, 15, 15);
+        rewardListPanel.setBorder(new EmptyBorder(15,10,15,10));
+        rewardListPanel.setLayout(gridLayout);
+        rewardListPanel.setBackground(Color.WHITE);
+        for (RewardVO rewardVO : rewardVOList) {
+            //给每个院系对象创建一个面板
+            rewPanel = new JPanel();
+            rewPanel.setLayout(null);
+            rewPanel.setSize(100,200);
+            rewPanel.setBackground(new Color(187,218,218));
+            JLabel deLabel = new JLabel("院系："+rewardVO.getDepartmentName());
+            deLabel.setBounds(10,5,400,24);
+            deLabel.setFont(font);
+            rewPanel.add(deLabel);
+            JLabel claLabel = new JLabel("班级："+rewardVO.getClassName());
+            claLabel.setBounds(10,30,400,24);
+            claLabel.setFont(font);
+            rewPanel.add(claLabel);
+            JLabel xhLabel = new JLabel("学号：");
+            xhLabel.setBounds(10,55,70,24);
+            xhLabel.setFont(font);
+            rewPanel.add(xhLabel);
+            idLabel = new JLabel(rewardVO.getStudentId());
+            idLabel.setBounds(75,55,400,24);
+            idLabel.setFont(font);
+            rewPanel.add(idLabel);
+            JLabel naLabel = new JLabel("姓名："+rewardVO.getStudentName());
+            naLabel.setBounds(10,80,400,24);
+            naLabel.setFont(font);
+            rewPanel.add(naLabel);
+            JLabel reDateLabel = new JLabel("日期：" + rewardVO.getRewardDate());
+            reDateLabel.setBounds(10,105,400,24);
+            reDateLabel.setFont(font);
+            rewPanel.add(reDateLabel);
+            rewArea = new JTextArea(rewardVO.getReward());
+            rewArea.setBounds(10,130,300,100);
+            rewArea.setBackground(Color.WHITE);
+            rewArea.setFont(font);
+            rewArea.setLineWrap(true);
+            rewArea.setWrapStyleWord(true);
+            rewArea.setEditable(false);
+            rewArea.setEnabled(false);
+            rewPanel.add(rewArea);
+            deRewButton = new JButton("删除");
+            deRewButton.setBounds(330,5,100,30);
+            deRewButton.setFont(font);
+            rewPanel.add(deRewButton);
+            upRewOKButton = new JButton("确定");
+            upRewOKButton.setBounds(330,130,100,30);
+            upRewOKButton.setFont(font);
+            upRewOKButton.setVisible(false);
+            rewPanel.add(upRewOKButton);
+            rewardListPanel.add(rewPanel);
+            deRewButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    int result = JOptionPane.showConfirmDialog(null, "是否确定要删除");
+                    // 判断用户是否点击
+                    if (result == JOptionPane.OK_OPTION) {
+                        //从流式面板移除当前这个人的布局
+                        rewardListPanel.remove(rewPanel);
+                        //删除这行记录
+                        ServiceFactory.getStudentServiceInstance().delRewById(rewardVO.getId());
+                        rewardListPanel.revalidate();
+                    }
+                }
+            });
+            rewArea.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (e.getClickCount() == 2){
+                        rewArea.setEditable(true);
+                        rewArea.setEnabled(true);
+                        upRewOKButton.setVisible(true);
+                        upRewOKButton.addActionListener(new ActionListener() {
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                rewardVO.setId(Integer.valueOf(idLabel.getText()));
+                                rewardVO.setReward(rewArea.getText());
+                                ServiceFactory.getStudentServiceInstance().upRew(rewardVO);
+                                rewArea.setEditable(false);
+                                rewArea.setEnabled(false);
+                                upRewOKButton.setVisible(false);
+                                rewPanel.revalidate();
+                            }
+                        });
+                    }
+                }
+            });
+        }
+        rewardListPanel.revalidate();
     }
     public void showStudentTable(List<StudentVO> studentList) {
         tablePanel.removeAll();
@@ -477,7 +783,6 @@ public class AdminMainFrame extends JFrame{
     private void showClasses(List<Department> departmentList){
         classContentPanel.removeAll();
         //rightSP.setViewportView(classContentPanel);
-        Font font = new Font("微软雅黑",Font.PLAIN,22);
         for (Department department: departmentList) {
             ImgPanel imgPanel = new ImgPanel();
             imgPanel.setFileName("border4.png");
@@ -581,6 +886,186 @@ public class AdminMainFrame extends JFrame{
                 }
             });
         }
+    }
+    private void showAddRewCombox(){
+        Department tip1 = new Department();
+        tip1.setDepartmentName("请选择院系");
+        addRewDepComboBox.addItem(tip1);
+        CClass tip2 = new CClass();
+        tip2.setClassName("请选择班级");
+        addRewClaComboBox.addItem(tip2);
+        StudentVO tip3 = new StudentVO();
+        tip3.setStudentName("请选择学生");
+        addRewNamComboBox.addItem(tip3);
+        List<Department> departmentList = ServiceFactory.getDepartmentServiceInstance().selectAll();
+        for (Department department:departmentList) {
+            addRewDepComboBox.addItem(department);
+        }
+        List<CClass> classList = ServiceFactory.getCClassServiceInstance().selectAllClass();
+        for (CClass cClass:classList) {
+            addRewClaComboBox.addItem(cClass);
+        }
+        List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().selectAll();
+        for (StudentVO student :studentList) {
+            addRewNamComboBox.addItem(student);
+        }
+        addRewDepComboBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED){
+                    int index = addRewDepComboBox.getSelectedIndex();
+                    //排除第一项提示信息
+                    if (index != 0 ){
+                        departmentId = addRewDepComboBox.getItemAt(index).getId();
+                        //二级联动
+                        List<CClass> cClassList = ServiceFactory.getCClassServiceInstance().selectByDepartmentId(departmentId);
+                        //
+                        addRewClaComboBox.removeAllItems();
+                        CClass tip = new CClass();
+                        tip.setClassName("请选择班级");
+                        addRewClaComboBox.addItem(tip);
+                        for (CClass cClass:cClassList) {
+                            addRewClaComboBox.addItem(cClass);
+                        }
+                    }
+                }
+            }
+        });
+        addRewClaComboBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED){
+                    int index = addRewClaComboBox.getSelectedIndex();
+                    if (index != 0){
+                        int classId = addRewClaComboBox.getItemAt(index).getId();
+                        //三级联动
+                        List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().getStuByClassId(classId);
+                        //
+                        addRewNamComboBox.removeAllItems();
+                        StudentVO tip = new StudentVO();
+                        tip.setStudentName("请选学生");
+                        addRewNamComboBox.addItem(tip);
+                        for (StudentVO student:studentList) {
+                            addRewNamComboBox.addItem(student);
+                        }
+                    }
+                }
+            }
+        });
+        addRewNamComboBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED){
+                    int index = addRewNamComboBox.getSelectedIndex();
+                    if (index != 0){
+                        String studentId = addRewNamComboBox.getItemAt(index).getId();
+                        addRewIdLabel.setText(studentId);
+                    }
+                }
+            }
+        });
+    }
+    private void showAddPunCombox(){
+        Department tip1 = new Department();
+        tip1.setDepartmentName("请选择院系");
+        addPunDepComboBox.addItem(tip1);
+        CClass tip2 = new CClass();
+        tip2.setClassName("请选择班级");
+        addPunClaComboBox.addItem(tip2);
+        StudentVO tip3 = new StudentVO();
+        tip3.setStudentName("请选择学生");
+        addPunNamComboBox.addItem(tip3);
+        List<Department> departmentList = ServiceFactory.getDepartmentServiceInstance().selectAll();
+        for (Department department:departmentList) {
+            addPunDepComboBox.addItem(department);
+        }
+        List<CClass> classList = ServiceFactory.getCClassServiceInstance().selectAllClass();
+        for (CClass cClass:classList) {
+            addPunClaComboBox.addItem(cClass);
+        }
+        List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().selectAll();
+        for (StudentVO student :studentList) {
+            addPunNamComboBox.addItem(student);
+        }
+        addPunDepComboBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED){
+                    int index = addPunDepComboBox.getSelectedIndex();
+                    //排除第一项提示信息
+                    if (index != 0 ){
+                        departmentId = addPunDepComboBox.getItemAt(index).getId();
+                        //二级联动
+                        List<CClass> cClassList = ServiceFactory.getCClassServiceInstance().selectByDepartmentId(departmentId);
+                        //
+                        addPunClaComboBox.removeAllItems();
+                        CClass tip = new CClass();
+                        tip.setClassName("请选择班级");
+                        addPunClaComboBox.addItem(tip);
+                        for (CClass cClass:cClassList) {
+                            addPunClaComboBox.addItem(cClass);
+                        }
+                    }
+                }
+            }
+        });
+        addPunClaComboBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED){
+                    int index = addPunClaComboBox.getSelectedIndex();
+                    if (index != 0){
+                        int classId = addPunClaComboBox.getItemAt(index).getId();
+                        //三级联动
+                        List<StudentVO> studentList = ServiceFactory.getStudentServiceInstance().getStuByClassId(classId);
+                        //
+                        addPunNamComboBox.removeAllItems();
+                        StudentVO tip = new StudentVO();
+                        tip.setStudentName("请选学生");
+                        addPunNamComboBox.addItem(tip);
+                        for (StudentVO student:studentList) {
+                            addPunNamComboBox.addItem(student);
+                        }
+                    }
+                }
+            }
+        });
+        addPunNamComboBox.addItemListener(new ItemListener() {
+            @Override
+            public void itemStateChanged(ItemEvent e) {
+                if (e.getStateChange() == ItemEvent.SELECTED){
+                    int index = addPunNamComboBox.getSelectedIndex();
+                    if (index != 0){
+                        String studentId = addPunNamComboBox.getItemAt(index).getId();
+                        addPunIdLabel.setText(studentId);
+                    }
+                }
+            }
+        });
+    }
+    private static DatePicker getDatePicker() {
+        final DatePicker datepick;
+        // 格式
+        String DefaultFormat = "yyyy-MM-dd";
+        // 当前时间
+        Date date = new Date();
+        // 字体
+        Font font = new Font("Times New Roman", Font.PLAIN, 22);
+        Dimension dimension = new Dimension(180, 30);
+        int[] hilightDays = {1, 3, 5, 7};
+        int[] disabledDays = {4, 6, 5, 9};
+        //构造方法（初始时间，时间显示格式，字体，控件大小）
+        datepick = new DatePicker(date,DefaultFormat,font,dimension);
+
+        // 设置一个月份中需要高亮显示的日子
+        datepick.setHightlightdays(hilightDays, Color.red);
+        // 设置一个月份中不需要的日子，呈灰色显示
+        datepick.setDisableddays(disabledDays);
+        // 设置国家
+        datepick.setLocale(Locale.CHINA);
+        // 设置时钟面板可见
+        // datepick.setTimePanleVisible(true);
+        return datepick;
     }
     public static void main(String[] args)throws Exception {
         UIManager.setLookAndFeel("com.sun.java.swing.plaf.windows.WindowsLookAndFeel");

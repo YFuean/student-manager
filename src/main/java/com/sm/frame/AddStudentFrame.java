@@ -47,7 +47,6 @@ public class AddStudentFrame extends JFrame{
         setContentPane(rootPanel);
         rootPanel.setFileName("wordbg2.png");
 
-
         CClass tip = new CClass();
         tip.setClassName("请选择班级");
         classcomboBox.addItem(tip);
@@ -115,7 +114,6 @@ public class AddStudentFrame extends JFrame{
                 }
             }
         });
-
         closebutton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -130,7 +128,7 @@ public class AddStudentFrame extends JFrame{
         final DatePicker datepick;
         // 格式
         String DefaultFormat = "yyyy-MM-dd";
-       // 当前时间
+        // 当前时间
         Date date = new Date();
         // 字体
         Font font = new Font("Times New Roman", Font.PLAIN, 18);
@@ -141,17 +139,17 @@ public class AddStudentFrame extends JFrame{
         datepick = new DatePicker(date,DefaultFormat,font,dimension);
         // datepick.setLocation(137, 83);//设置起始位置
 
-         //也可用setBounds()直接设置大小与位置
-          //datepick.setBounds(137, 83, 177, 24);
+        //也可用setBounds()直接设置大小与位置
+        //datepick.setBounds(137, 83, 177, 24);
 
-       // 设置一个月份中需要高亮显示的日子
+        // 设置一个月份中需要高亮显示的日子
         datepick.setHightlightdays(hilightDays, Color.red);
-         // 设置一个月份中不需要的日子，呈灰色显示
+        // 设置一个月份中不需要的日子，呈灰色显示
         datepick.setDisableddays(disabledDays);
         // 设置国家
         datepick.setLocale(Locale.CHINA);
         // 设置时钟面板可见
-         // datepick.setTimePanleVisible(true);
+        // datepick.setTimePanleVisible(true);
         return datepick;
     }
 

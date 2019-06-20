@@ -1,5 +1,7 @@
 package com.sm.service.impl;
 
+import com.sm.entity.PunishVO;
+import com.sm.entity.RewardVO;
 import com.sm.entity.Student;
 import com.sm.entity.StudentVO;
 import com.sm.factory.ServiceFactory;
@@ -77,5 +79,79 @@ public class StudentServiceImplTest {
     public void countByClassId() {
         int count = studentService.countByClassId(6);
         System.out.println(count);
+    }
+
+    @Test
+    public void selectAllReward() {
+        List<RewardVO> rewardVOList = studentService.selectAllReward();
+        rewardVOList.forEach(rewardVO -> System.out.println(rewardVO));
+    }
+
+    @Test
+    public void selectByStuId() {
+        List<RewardVO> rewardVOList = studentService.selectByStuId("1802736893");
+        rewardVOList.forEach(rewardVO -> System.out.println(rewardVO));
+    }
+
+    @Test
+    public void selectRewByKeywords() {
+        List<RewardVO> rewardVOList = studentService.selectRewByKeywords("李");
+        rewardVOList.forEach(rewardVO -> System.out.println(rewardVO));
+    }
+
+    @Test
+    public void delRewById() {
+        studentService.delRewById(16);
+    }
+
+    @Test
+    public void upRew() {
+        RewardVO rewardVO = new RewardVO();
+        rewardVO.setId(14);
+        rewardVO.setReward("国家奖学金");
+        studentService.upRew(rewardVO);
+    }
+
+    @Test
+    public void inRew() {
+        RewardVO rewardVO = new RewardVO();
+        rewardVO.setStudentId("21");
+        rewardVO.setReward("三好学生");
+        rewardVO.setRewardDate(new Date());
+        studentService.inRew(rewardVO);
+    }
+
+    @Test
+    public void selectAllPunish() {
+        List<PunishVO> punishVOList = studentService.selectAllPunish();
+        punishVOList.forEach(punishVO -> System.out.println(punishVO));
+    }
+
+    @Test
+    public void selectPunByKeywords() {
+        List<PunishVO> punishVOList = studentService.selectPunByKeywords("李");
+        punishVOList.forEach(punishVO -> System.out.println(punishVO));
+    }
+
+    @Test
+    public void delPunById() {
+        studentService.delPunById(17);
+    }
+
+    @Test
+    public void upPun() {
+        PunishVO punishVO = new PunishVO();
+        punishVO.setId(15);
+        punishVO.setPunish("处分");
+        studentService.upPun(punishVO);
+    }
+
+    @Test
+    public void inPun() {
+        PunishVO punishVO = new PunishVO();
+        punishVO.setStudentId("33333");
+        punishVO.setPunish("处分");
+        punishVO.setPunishDate(new Date());
+        studentService.inPun(punishVO);
     }
 }

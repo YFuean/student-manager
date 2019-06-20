@@ -17,7 +17,7 @@ public class AdminLoginFrame extends JFrame{
     private JButton cancelButton;
 
     public AdminLoginFrame(){
-        mainPanel.setFileName("garland1.jpg");
+        mainPanel.setFileName("wordbg2.png");
         mainPanel.repaint();
         setTitle("管理员登录界面");
         setContentPane(mainPanel);
